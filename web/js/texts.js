@@ -154,7 +154,7 @@ export const LABREGO = {
   groupHeading: 'O ajuntamento',
   groupNameLabel: 'Nome do ajuntamento (se ainda te lembrares)',
   groupNamePh: 'Ex.: Apanha da puta em Ponte de Lima',
-  peopleHeading: 'Os cabrões que têm',
+  peopleHeading: 'Os cabrões que têm pagar esta palhaçada',
   personNameLabel: 'Nome do cabrão',
   personNamePh: 'Nome',
   addPerson: 'Pôr o cabrão',
@@ -172,7 +172,7 @@ export const LABREGO = {
   settleHeading: 'Hora de arrotar com o verdadeiro',
   supportAsk: 'Gostaste desta merda?',
   supportLink: 'Paga-me uma mini',
-  footData: 'Os dados ficam só neste browser, ninguém anda a bisbilhotar a tua vida.',
+  footData: 'Os dados ficam só neste browser, ninguém quer saber da tua vida.',
   footCode: 'Código ou lá o que é, se fores um nerd do caralho',
   footLicense: '· licença MIT, faz o que quiseres',
 

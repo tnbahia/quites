@@ -532,6 +532,12 @@ const LABREGO_KEY = 'quites:labrego';
 
 function switchLabrego(on) {
   setLabrego(on);
+  mark.classList.toggle('labrego', on);
+  if (on && !reduceMotion.matches && mark.animate) {
+    for (const nip of mark.querySelectorAll('.nip')) {
+      nip.animate([{ opacity: 0, transform: 'scale(0.4)' }, { opacity: 1, transform: 'scale(1.5)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 450, easing: 'ease-out' });
+    }
+  }
   try { storage.setItem(LABREGO_KEY, on ? '1' : '0'); } catch { /* sem armazenamento: vale só nesta visita */ }
   applyStaticTexts();
   render();
@@ -570,22 +576,47 @@ document.addEventListener('keydown', (ev) => {
 // Colar um link do Quites num separador onde a app já está aberta só muda o `#`, sem recarregar.
 window.addEventListener('hashchange', loadFromHash);
 
-// Clicar no círculo duplo repete a animação do logótipo.
+// Logótipo: os círculos juntam-se e o visto desenha-se (Web Animations API, que funciona em todos os browsers).
+// Clicar repete a animação; 5 cliques seguidos ligam/desligam o modo escondido (ver acima).
 const mark = $('mark');
+
+function playMark() {
+  if (reduceMotion.matches || !mark.animate) return;
+  const slide = { duration: 800, delay: 100, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' };
+  const apart = isLabrego() ? 7 : 0; // no modo escondido as duas metades acabam afastadas
+  mark.querySelector('.left').animate([{ transform: `translateX(${-13 - apart}px)` }, { transform: `translateX(${-apart}px)` }], slide);
+  mark.querySelector('.right').animate([{ transform: `translateX(${13 + apart}px)` }, { transform: `translateX(${apart}px)` }], slide);
+  mark.querySelector('.lens').animate(
+    [{ opacity: 0, transform: 'scale(0.4)' }, { opacity: 1, transform: 'scale(1)' }],
+    { duration: 350, delay: 650, easing: 'ease-out', fill: 'backwards' },
+  );
+  mark.querySelector('.tick').animate(
+    [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
+    { duration: 400, delay: 950, easing: 'ease-out', fill: 'backwards' },
+  );
+}
+
+function wiggleMark() {
+  if (reduceMotion.matches || !mark.animate) return;
+  mark.animate(
+    [
+      { transform: 'rotate(0deg) scale(1)' }, { transform: 'rotate(-9deg) scale(1.08)' }, { transform: 'rotate(8deg) scale(1.08)' },
+      { transform: 'rotate(-5deg) scale(1.04)' }, { transform: 'rotate(0deg) scale(1)' },
+    ],
+    { duration: 600, easing: 'ease-in-out' },
+  );
+}
+
 let taps = 0;
 let tapTimer;
 mark.addEventListener('click', () => {
-  mark.classList.remove('play');
-  void mark.getBoundingClientRect();
-  mark.classList.add('play');
-
+  playMark();
   taps += 1;
   clearTimeout(tapTimer);
   tapTimer = setTimeout(() => { taps = 0; }, 800);
   if (taps < 5) return;
   taps = 0;
-  mark.classList.add('wiggle');
-  setTimeout(() => mark.classList.remove('wiggle'), 700);
+  wiggleMark();
   switchLabrego(!isLabrego());
 });
 
@@ -593,3 +624,5 @@ applyStaticTexts();
 resetDraft();
 render();
 loadFromHash();
+mark.classList.toggle('labrego', isLabrego());
+setTimeout(playMark, 150);
