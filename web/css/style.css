@@ -164,6 +164,11 @@ td.sub { text-align: left; }
 
 .foot { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 .foot a { color: inherit; }
+.support {
+  margin: 8px 0 20px; padding: 14px 16px; text-align: center; font-size: 1rem; color: var(--text);
+  background: var(--accent-soft); border-radius: var(--radius);
+}
+.foot .support a { color: var(--accent); font-weight: 600; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 [hidden] { display: none !important; }
