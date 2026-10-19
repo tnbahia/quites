@@ -1,11 +1,18 @@
 // Resumo do grupo em texto, pronto a ser desenhado numa imagem (ver image.js).
 // Fica separado do desenho para se poder testar sem canvas.
 
-import { settlementPlan, pairKey, totalCents, formatMoney } from './settle.js';
+import { settlementPlan, groupTransfers, pairKey, totalCents, formatMoney } from './settle.js';
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 const dateFormat = new Intl.DateTimeFormat('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+/** Título de cada grupo de transferências (`null` quando há um só grupo, sem pessoa central). */
+export function groupTitle(kind, centralName) {
+  if (kind === 'pay') return `Pagam a ${centralName}`;
+  if (kind === 'receive') return `Recebem de ${centralName}`;
+  return null;
+}
 
 /** Quanto toca a cada um. Com cêntimos que não dividem exatamente, mostra "≈". */
 function shareText(amountCents, count) {
@@ -37,9 +44,13 @@ export function buildSummary(state, now = new Date()) {
     countsText: `${plural(state.expenses.length, 'despesa', 'despesas')} · ${plural(state.people.length, 'pessoa', 'pessoas')}`,
     expenses,
     modeNote: central ? `Tudo passa por ${nameOf(centralId)}: quem deve paga a ${nameOf(centralId)}, que depois paga a quem tem a receber.` : null,
-    transfers: transfers.map((t) => ({
-      text: `${nameOf(t.from)} paga ${formatMoney(t.amountCents)} a ${nameOf(t.to)}`,
-      paid: state.paid[pairKey(t)] === true,
+    transferGroups: groupTransfers(transfers, central ? centralId : null).map((g) => ({
+      title: groupTitle(g.kind, nameOf(centralId)),
+      totalText: formatMoney(g.totalCents),
+      items: g.transfers.map((t) => ({
+        text: `${nameOf(t.from)} paga ${formatMoney(t.amountCents)} a ${nameOf(t.to)}`,
+        paid: state.paid[pairKey(t)] === true,
+      })),
     })),
   };
 }

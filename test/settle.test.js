@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  splitEvenly, computeBalances, minimalTransfers, centralTransfers, parseMoney, formatMoney, totalCents,
+  splitEvenly, computeBalances, minimalTransfers, centralTransfers, groupTransfers, parseMoney, formatMoney, totalCents,
 } from '../web/js/settle.js';
 
 // Reproduz um caso real de 15 pessoas e 6 despesas (319,69 €), com nomes fictícios.
@@ -113,4 +113,25 @@ test('parseMoney aceita vírgula, ponto, espaços e €', () => {
 
 test('formatMoney usa o formato português', () => {
   assert.match(formatMoney(123456), /^1\s?234,56\s€$/u);
+});
+
+test('groupTransfers separa quem paga à central de quem recebe dela', () => {
+  const balances = computeBalances(people, expenses);
+  const central = id('Ana');
+  const transfers = centralTransfers(balances, central);
+  const [pay, receive] = groupTransfers(transfers, central);
+  assert.equal(pay.kind, 'pay');
+  assert.ok(pay.transfers.every((t) => t.to === central));
+  assert.equal(receive.kind, 'receive');
+  assert.ok(receive.transfers.every((t) => t.from === central));
+  assert.equal(pay.transfers.length + receive.transfers.length, transfers.length);
+  assert.equal(pay.totalCents, pay.transfers.reduce((s, t) => s + t.amountCents, 0));
+});
+
+test('groupTransfers omite grupos vazios e junta tudo quando não há central', () => {
+  const t = [{ from: 'a', to: 'c', amountCents: 500 }];
+  assert.deepEqual(groupTransfers(t, 'c').map((g) => g.kind), ['pay']);
+  assert.deepEqual(groupTransfers(t).map((g) => g.kind), ['all']);
+  assert.deepEqual(groupTransfers([], 'c'), []);
+  assert.deepEqual(groupTransfers([]), []);
 });

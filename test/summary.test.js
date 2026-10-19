@@ -24,13 +24,15 @@ test('buildSummary descreve total, despesas e transferências do grupo de exempl
   assert.match(supermercado.shareText, /^15,80\s€ a cada um$/u);
   assert.equal(gasolina.detail, 'Pago por Diogo · divide por 2 pessoas: Diogo, Eva');
 
-  assert.deepEqual(s.transfers.map((t) => t.text.replace(/\s/gu, ' ')), [
+  assert.equal(s.transferGroups.length, 1);
+  assert.equal(s.transferGroups[0].title, null);
+  assert.deepEqual(s.transferGroups[0].items.map((t) => t.text.replace(/\s/gu, ' ')), [
     'Eva paga 89,10 € a Ana',
     'Diogo paga 56,90 € a Ana',
     'Carla paga 13,10 € a Ana',
     'Carla paga 4,60 € a Bruno',
   ]);
-  assert.ok(s.transfers.every((t) => t.paid === false));
+  assert.ok(s.transferGroups[0].items.every((t) => t.paid === false));
 });
 
 test('buildSummary marca as transferências já pagas e usa "≈" quando não divide exato', () => {
@@ -38,24 +40,29 @@ test('buildSummary marca as transferências já pagas e usa "≈" quando não di
   const first = settlementPlan(state).transfers[0];
   state.paid[pairKey(first)] = true;
   state.expenses.push({ id: 'x', description: 'Café', amountCents: 1000, paidBy: 'p1', participants: ['p1', 'p2', 'p5'] });
-  const before = buildSummary(demoState(), NOW);
-  assert.equal(before.transfers.filter((t) => t.paid).length, 0);
+  const paidCount = (summary) => summary.transferGroups.flatMap((g) => g.items).filter((t) => t.paid).length;
+  assert.equal(paidCount(buildSummary(demoState(), NOW)), 0);
   const s = buildSummary(state, NOW);
-  assert.equal(s.transfers.filter((t) => t.paid).length, 0); // a dívida da Eva mudou, a marca já não se aplica
+  assert.equal(paidCount(s), 0); // a dívida da Eva mudou, a marca já não se aplica
   assert.match(s.expenses.at(-1).shareText, /^≈ 3,33\s€ a cada um$/u);
   assert.equal(s.expenses.at(-1).detail, 'Pago por Ana · divide por 3 pessoas: Ana, Bruno, Eva');
 
   // sem alterar nada, a marca mantém-se
   const unchanged = demoState();
   unchanged.paid[pairKey(first)] = true;
-  assert.equal(buildSummary(unchanged, NOW).transfers.filter((t) => t.paid).length, 1);
+  assert.equal(paidCount(buildSummary(unchanged, NOW)), 1);
 });
 
 test('buildSummary no modo central explica quem centraliza e conta uma só pessoa', () => {
   const state = { ...demoState(), mode: 'central', central: 'p2' };
   const s = buildSummary(state, NOW);
   assert.match(s.modeNote, /^Tudo passa por Bruno/);
-  assert.ok(s.transfers.every((t) => t.text.includes('Bruno')));
+  assert.deepEqual(s.transferGroups.map((g) => g.title), ['Pagam a Bruno', 'Recebem de Bruno']);
+  const [pay, receive] = s.transferGroups;
+  assert.ok(pay.items.every((t) => t.text.endsWith('a Bruno')));
+  assert.ok(receive.items.every((t) => t.text.startsWith('Bruno paga')));
+  assert.match(pay.totalText, /^[\d\s,]+€$/u);
+  assert.equal(pay.items.length + receive.items.length, 4);
   const single = buildSummary({ ...state, expenses: [{ id: 'e', description: 'Um', amountCents: 100, paidBy: 'p1', participants: ['p1'] }] }, NOW);
   assert.equal(single.countsText, '1 despesa · 5 pessoas');
 });

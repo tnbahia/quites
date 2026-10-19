@@ -78,6 +78,19 @@ export function centralTransfers(balances, centralId) {
   return transfers;
 }
 
+/**
+ * Separa as transferências por papel. Com pessoa central: quem paga à central e quem recebe
+ * da central, por esta ordem; sem central (`centralId` nulo): um só grupo com tudo.
+ */
+export function groupTransfers(transfers, centralId = null) {
+  const group = (kind, list) => ({ kind, transfers: list, totalCents: list.reduce((s, t) => s + t.amountCents, 0) });
+  if (centralId == null) return transfers.length ? [group('all', transfers)] : [];
+  return [
+    group('pay', transfers.filter((t) => t.to === centralId)),
+    group('receive', transfers.filter((t) => t.from === centralId)),
+  ].filter((g) => g.transfers.length > 0);
+}
+
 /** Saldos e transferências para o modo escolhido no estado (`minimal` ou `central`). */
 export function settlementPlan(state) {
   const balances = computeBalances(state.people, state.expenses);

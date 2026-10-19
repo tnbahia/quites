@@ -143,42 +143,27 @@ function paint(ctx, s, height) {
     }
     y += 12;
   }
-  if (s.transfers.length === 0) {
+  if (s.transferGroups.length === 0) {
     ctx.font = font(600, 32);
     ctx.fillStyle = COLOR.accent;
     ctx.fillText('Já está tudo quite.', PAD, y + 32);
     y += 48;
   }
-  for (const t of s.transfers) {
-    ctx.font = font(600, 32);
-    const lines = wrap(ctx, t.text, inner - 56);
-    const boxY = y + 4;
-    if (t.paid) {
+  s.transferGroups.forEach((group, g) => {
+    if (group.title) {
+      if (g > 0) y += 20;
       ctx.fillStyle = COLOR.accent;
-      roundedRect(ctx, PAD, boxY, 34, 34, 8);
-      ctx.fill();
-      ctx.strokeStyle = COLOR.onAccent;
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(PAD + 8, boxY + 18);
-      ctx.lineTo(PAD + 15, boxY + 25);
-      ctx.lineTo(PAD + 27, boxY + 10);
-      ctx.stroke();
-    } else {
-      ctx.strokeStyle = COLOR.muted;
-      ctx.lineWidth = 3;
-      roundedRect(ctx, PAD + 1.5, boxY + 1.5, 31, 31, 8);
-      ctx.stroke();
+      ctx.font = font(700, 30);
+      ctx.fillText(group.title, PAD, y + 30);
+      ctx.fillStyle = COLOR.muted;
+      ctx.font = font(400, 26);
+      ctx.textAlign = 'right';
+      ctx.fillText(`total ${group.totalText}`, W - PAD, y + 30);
+      ctx.textAlign = 'left';
+      y += 30 + 24;
     }
-    ctx.fillStyle = t.paid ? COLOR.muted : COLOR.text;
-    for (const line of lines) {
-      ctx.fillText(line, PAD + 56, y + 32);
-      y += 42;
-    }
-    y += 16;
-  }
+    for (const t of group.items) y = paintTransfer(ctx, t, y, inner);
+  });
   y += 28;
 
   // Rodapé
@@ -186,6 +171,38 @@ function paint(ctx, s, height) {
   ctx.fillStyle = COLOR.muted;
   ctx.fillText('Feito com Quites · tnbahia.github.io/quites', PAD, y + 22);
   return y + 22 + 48;
+}
+
+/** Uma transferência com a sua caixa (cheia e com visto se já foi paga). Devolve o novo `y`. */
+function paintTransfer(ctx, t, y, inner) {
+  ctx.font = font(600, 32);
+  const lines = wrap(ctx, t.text, inner - 56);
+  const boxY = y + 4;
+  if (t.paid) {
+    ctx.fillStyle = COLOR.accent;
+    roundedRect(ctx, PAD, boxY, 34, 34, 8);
+    ctx.fill();
+    ctx.strokeStyle = COLOR.onAccent;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(PAD + 8, boxY + 18);
+    ctx.lineTo(PAD + 15, boxY + 25);
+    ctx.lineTo(PAD + 27, boxY + 10);
+    ctx.stroke();
+  } else {
+    ctx.strokeStyle = COLOR.muted;
+    ctx.lineWidth = 3;
+    roundedRect(ctx, PAD + 1.5, boxY + 1.5, 31, 31, 8);
+    ctx.stroke();
+  }
+  ctx.fillStyle = t.paid ? COLOR.muted : COLOR.text;
+  for (const line of lines) {
+    ctx.fillText(line, PAD + 56, y + 32);
+    y += 42;
+  }
+  return y + 16;
 }
 
 /** Devolve um canvas com o resumo desenhado, ou `null` se for demasiado grande para uma imagem. */

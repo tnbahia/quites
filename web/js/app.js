@@ -1,10 +1,10 @@
 // Interface. Os dados de utilizadores (nomes, descrições) só entram no DOM via textContent
 // (através de h()), nunca como HTML, para que um grupo importado ou um link não possam injetar código.
 
-import { settlementPlan, pairKey, totalCents, formatMoney, parseMoney } from './settle.js';
+import { settlementPlan, groupTransfers, pairKey, totalCents, formatMoney, parseMoney } from './settle.js';
 import * as S from './state.js';
 import { demoState } from './demo.js';
-import { buildSummary } from './summary.js';
+import { buildSummary, groupTitle } from './summary.js';
 import { renderSummaryCanvas, canvasToPng } from './image.js';
 
 const $ = (id) => document.getElementById(id);
@@ -167,6 +167,7 @@ function renderSettle() {
   }
 
   const { balances, transfers, central, centralId } = settlementPlan(state);
+  const groups = groupTransfers(transfers, central ? centralId : null);
 
   box.append(
     h('fieldset', { class: 'modes' },
@@ -183,10 +184,10 @@ function renderSettle() {
 
   box.append(
     h('div', { class: 'row actions' },
-      transfers.length > 0 && h('button', { type: 'button', onclick: () => copyInstructions(transfers) }, 'Copiar instruções'),
+      transfers.length > 0 && h('button', { type: 'button', onclick: () => copyInstructions(groups) }, 'Copiar instruções'),
       h('button', { type: 'button', class: 'primary', onclick: onDownloadImage }, 'Descarregar imagem'),
     ),
-    transferList(transfers),
+    transferList(groups, nameOf(centralId)),
     balanceTable(balances),
   );
 }
@@ -201,25 +202,29 @@ function modeOption(value, title, text) {
   );
 }
 
-function transferList(transfers) {
+function transferList(groups, centralName) {
   const wrap = h('div', { class: 'transfers' });
+  const transfers = groups.flatMap((g) => g.transfers);
   if (transfers.length === 0) {
     wrap.append(h('p', { class: 'done' }, 'Já está tudo quite. Ninguém deve nada a ninguém.'));
     return wrap;
   }
 
-  const keys = transfers.map(pairKey);
+  const keys = new Map(transfers.map((t) => [t, pairKey(t)]));
+  const rows = new Map();
   const progress = h('progress', { max: transfers.length, value: 0 });
   const status = h('span', { class: 'status' });
-  const rows = transfers.map((t, i) => {
+
+  const rowFor = (t) => {
+    const key = keys.get(t);
     const row = h('li', {},
       h('label', { class: 'check' },
         h('input', {
           type: 'checkbox',
-          checked: state.paid[keys[i]] === true,
+          checked: state.paid[key] === true,
           onchange: (ev) => {
             const paid = { ...state.paid };
-            if (ev.target.checked) paid[keys[i]] = true; else delete paid[keys[i]];
+            if (ev.target.checked) paid[key] = true; else delete paid[key];
             state = { ...state, paid };
             persist();
             refresh();
@@ -228,27 +233,35 @@ function transferList(transfers) {
         h('span', {}, h('strong', {}, nameOf(t.from)), ' paga ', h('strong', {}, formatMoney(t.amountCents)), ' a ', h('strong', {}, nameOf(t.to))),
       ),
     );
+    rows.set(t, row);
     return row;
-  });
+  };
 
   function refresh() {
     let done = 0;
-    rows.forEach((row, i) => {
-      const paid = state.paid[keys[i]] === true;
+    for (const [t, row] of rows) {
+      const paid = state.paid[keys.get(t)] === true;
       row.classList.toggle('paid', paid);
       if (paid) done++;
-    });
+    }
     progress.value = done;
     status.textContent = done === transfers.length
       ? 'Estão todos quites! 🎉'
       : `${done} de ${transfers.length} transferências feitas`;
   }
 
-  wrap.append(
-    h('h3', {}, transfers.length === 1 ? 'Uma transferência' : `${transfers.length} transferências`),
-    h('ul', { class: 'list checklist' }, rows),
-    h('div', { class: 'row progressbar' }, progress, status),
-  );
+  wrap.append(h('h3', {}, transfers.length === 1 ? 'Uma transferência' : `${transfers.length} transferências`));
+  for (const g of groups) {
+    const title = groupTitle(g.kind, centralName);
+    wrap.append(h('div', { class: 'group' },
+      title && h('div', { class: 'group-head' },
+        h('h4', {}, title),
+        h('span', { class: 'sub' }, `total ${formatMoney(g.totalCents)}`),
+      ),
+      h('ul', { class: 'list checklist' }, g.transfers.map(rowFor)),
+    ));
+  }
+  wrap.append(h('div', { class: 'row progressbar' }, progress, status));
   refresh();
   return wrap;
 }
@@ -345,10 +358,14 @@ async function copyText(text) {
   }
 }
 
-async function copyInstructions(transfers) {
-  const title = state.name ? `${state.name}\n` : '';
-  const lines = transfers.map((t) => `${nameOf(t.from)} paga ${formatMoney(t.amountCents)} a ${nameOf(t.to)}`);
-  const text = title + lines.join('\n');
+async function copyInstructions(groups) {
+  const centralName = nameOf(settlementPlan(state).centralId);
+  const blocks = groups.map((g) => {
+    const title = groupTitle(g.kind, centralName);
+    const lines = g.transfers.map((t) => `${nameOf(t.from)} paga ${formatMoney(t.amountCents)} a ${nameOf(t.to)}`);
+    return (title ? [`${title} (total ${formatMoney(g.totalCents)}):`, ...lines] : lines).join('\n');
+  });
+  const text = (state.name ? `${state.name}\n` : '') + blocks.join('\n\n');
   if (await copyText(text)) say('Instruções copiadas. Já podes colar no grupo.');
   else window.prompt('Copia as instruções:', text);
 }

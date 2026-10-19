@@ -139,6 +139,10 @@ input[type="text"], select {
 .actions { margin-bottom: 20px; }
 .transfers { margin-bottom: 24px; }
 .transfers h3 { margin-bottom: 8px; }
+.group + .group { margin-top: 20px; }
+.group .list { margin-top: 0; }
+.group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 12px 0 6px; }
+.group-head h4 { margin: 0; font-size: 1rem; color: var(--accent); }
 .checklist li { padding: 2px 14px; border-top: 1px solid var(--border); }
 .checklist li.paid span { color: var(--muted); }
 .checklist li.paid strong { font-weight: 400; text-decoration: line-through; }
