@@ -68,7 +68,7 @@ body {
 
 /* ---- Cabeçalho: um campo de cor e o círculo duplo em grande ---- */
 
-.top { position: relative; z-index: 3; padding: 40px 0 96px; color: #fff; background: var(--hero); }
+.top { padding: 40px 0 96px; color: #fff; background: var(--hero); }
 .hero { display: block; }
 .brand { display: flex; align-items: center; gap: clamp(12px, 3vw, 20px); }
 h1 { margin: 0; font: 800 clamp(3rem, 11vw, 5rem)/0.9 var(--font-display); letter-spacing: -0.045em; }
@@ -351,9 +351,6 @@ section:nth-of-type(4) { animation-delay: .36s; }
   section { padding: 20px 16px 18px; border-radius: 18px; }
   .grid { grid-template-columns: 1fr; gap: 0; }
   .modes { grid-template-columns: 1fr; }
-  .toolbar { width: 100%; }
-  .toolbar > button, .menu { flex: 1 1 auto; }
-  .menu summary { width: 100%; justify-content: center; }
   .menu-list { left: 0; right: 0; }
   .item .grow { flex-basis: calc(100% - 60px); }
   .item .amount { margin-left: auto; }
