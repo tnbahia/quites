@@ -7,30 +7,38 @@
   <meta name="description" content="Divide despesas com amigos e descobre quem paga a quem. Corre no teu browser: sem conta, sem servidor, os dados ficam contigo.">
   <meta name="color-scheme" content="light dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f766e'/%3E%3Ccircle cx='24' cy='32' r='15' fill='%23fff'/%3E%3Ccircle cx='40' cy='32' r='15' fill='%23fbbf24' fill-opacity='.92'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
   <header class="top">
-    <div class="wrap">
-      <div class="brand">
-        <h1>Quites</h1>
-        <p class="tagline">Paga o que deves. Ficamos quites.</p>
+    <div class="wrap hero">
+      <div class="hero-text">
+        <h1 translate="no">Quites</h1>
+        <p class="tagline" data-t="tagline">Paga o que deves. Ficamos quites.</p>
+        <div class="toolbar" role="toolbar" aria-label="Ações do grupo" data-t-label="toolbarLabel">
+          <button type="button" id="btn-share" class="primary" data-t="share">Copiar link do grupo</button>
+          <details class="menu" id="menu-more">
+            <summary data-t="more">Mais</summary>
+            <div class="menu-list">
+              <button type="button" id="btn-export" data-t="export">Exportar para ficheiro</button>
+              <button type="button" id="btn-import" data-t="import">Importar de ficheiro</button>
+              <button type="button" id="btn-demo" data-t="demo">Ver exemplo</button>
+              <button type="button" id="btn-clear" class="danger" data-t="clear">Começar de novo</button>
+            </div>
+          </details>
+          <input type="file" id="file-import" accept="application/json,.json" hidden>
+        </div>
       </div>
-      <div class="toolbar" role="toolbar" aria-label="Ações do grupo">
-        <button type="button" id="btn-share" class="primary">Copiar link do grupo</button>
-        <details class="menu" id="menu-more">
-          <summary>Mais</summary>
-          <div class="menu-list">
-            <button type="button" id="btn-export">Exportar para ficheiro</button>
-            <button type="button" id="btn-import">Importar de ficheiro</button>
-            <button type="button" id="btn-demo">Ver exemplo</button>
-            <button type="button" id="btn-clear" class="danger">Começar de novo</button>
-          </div>
-        </details>
-        <input type="file" id="file-import" accept="application/json,.json" hidden>
-      </div>
+      <svg class="mark play" id="mark" viewBox="0 0 64 40" aria-hidden="true" focusable="false">
+        <clipPath id="mark-left"><circle cx="22" cy="20" r="18"/></clipPath>
+        <circle cx="22" cy="20" r="18" fill="#fff"/>
+        <circle class="slide" cx="42" cy="20" r="18" fill="#fbbf24"/>
+        <g clip-path="url(#mark-left)"><circle class="slide" cx="42" cy="20" r="18" fill="#0a4f49"/></g>
+        <path class="tick" pathLength="1" d="M27.5 20.5 31.5 24.5 37.5 15.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
   </header>
 
@@ -38,68 +46,68 @@
     <p id="msg" class="msg" role="status" aria-live="polite" hidden></p>
 
     <section aria-labelledby="h-group">
-      <h2 id="h-group">Grupo</h2>
+      <h2 id="h-group" data-t="groupHeading">Grupo</h2>
       <label class="field">
-        <span>Nome (opcional)</span>
-        <input id="group-name" type="text" maxlength="80" autocomplete="off" placeholder="Ex.: Fim de semana na serra">
+        <span data-t="groupNameLabel">Nome (opcional)</span>
+        <input id="group-name" type="text" maxlength="80" autocomplete="off" placeholder="Ex.: Fim de semana na serra" data-t-ph="groupNamePh">
       </label>
     </section>
 
     <section aria-labelledby="h-people">
-      <h2 id="h-people"><span class="step">1</span> Pessoas</h2>
+      <h2 id="h-people"><span class="step">1</span> <span data-t="peopleHeading">Pessoas</span></h2>
       <form id="person-form" class="row" autocomplete="off">
         <label class="field grow">
-          <span class="sr-only">Nome da pessoa</span>
-          <input id="person-name" type="text" maxlength="60" placeholder="Nome" required>
+          <span class="sr-only" data-t="personNameLabel">Nome da pessoa</span>
+          <input id="person-name" type="text" maxlength="60" placeholder="Nome" data-t-ph="personNamePh" required>
         </label>
-        <button type="submit" class="primary">Adicionar</button>
+        <button type="submit" class="primary" data-t="addPerson">Adicionar</button>
       </form>
       <ul id="people-list" class="chips"></ul>
     </section>
 
     <section aria-labelledby="h-expenses">
-      <h2 id="h-expenses"><span class="step">2</span> Despesas</h2>
-      <p id="expenses-hint" class="hint" hidden>Adiciona primeiro as pessoas do grupo.</p>
+      <h2 id="h-expenses"><span class="step">2</span> <span data-t="expensesHeading">Despesas</span></h2>
+      <p id="expenses-hint" class="hint" data-t="needPeopleFirst" hidden>Adiciona primeiro as pessoas do grupo.</p>
       <form id="expense-form" autocomplete="off">
         <div class="grid">
           <label class="field">
-            <span>Descrição</span>
-            <input id="exp-desc" type="text" maxlength="100" placeholder="Ex.: Jantar">
+            <span data-t="descLabel">Descrição</span>
+            <input id="exp-desc" type="text" maxlength="100" placeholder="Ex.: Jantar" data-t-ph="descPh">
           </label>
           <label class="field">
-            <span>Valor (€)</span>
+            <span data-t="amountLabel">Valor (€)</span>
             <input id="exp-amount" type="text" inputmode="decimal" placeholder="0,00" required>
           </label>
           <label class="field">
-            <span>Pago por</span>
+            <span data-t="payerLabel">Pago por</span>
             <select id="exp-payer" required></select>
           </label>
         </div>
         <fieldset class="field">
-          <legend>Quem participa</legend>
+          <legend data-t="participantsLegend">Quem participa</legend>
           <div class="row tight">
-            <button type="button" id="btn-all" class="small">Todos</button>
-            <button type="button" id="btn-none" class="small">Ninguém</button>
+            <button type="button" id="btn-all" class="small" data-t="all">Todos</button>
+            <button type="button" id="btn-none" class="small" data-t="none">Ninguém</button>
           </div>
           <div id="exp-participants" class="checks"></div>
         </fieldset>
         <div class="row">
-          <button type="submit" id="btn-save-expense" class="primary">Adicionar despesa</button>
-          <button type="button" id="btn-cancel-edit" hidden>Cancelar</button>
+          <button type="submit" id="btn-save-expense" class="primary" data-t="addExpense">Adicionar despesa</button>
+          <button type="button" id="btn-cancel-edit" data-t="cancel" hidden>Cancelar</button>
         </div>
       </form>
       <ul id="expenses-list" class="list"></ul>
     </section>
 
     <section aria-labelledby="h-settle">
-      <h2 id="h-settle"><span class="step">3</span> Acerto de contas</h2>
+      <h2 id="h-settle"><span class="step">3</span> <span data-t="settleHeading">Acerto de contas</span></h2>
       <div id="settle"></div>
     </section>
   </main>
 
   <footer class="wrap foot">
-    <p class="support">Isto foi útil? <a href="https://ko-fi.com/snowbay" target="_blank" rel="noopener noreferrer">Paga-me um café ☕</a></p>
-    <p>Os dados ficam só neste browser. <a href="https://github.com/tnbahia/quites">Código no GitHub</a> · licença MIT</p>
+    <p class="support"><span data-t="supportAsk">Isto foi útil?</span> <a href="https://ko-fi.com/snowbay" target="_blank" rel="noopener noreferrer" data-t="supportLink">Paga-me um café</a></p>
+    <p><span data-t="footData">Os dados ficam só neste browser.</span> <a href="https://github.com/tnbahia/quites" data-t="footCode">Código no GitHub</a> <span data-t="footLicense">· licença MIT</span></p>
   </footer>
 </body>
 </html>

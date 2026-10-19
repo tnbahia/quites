@@ -1,6 +1,8 @@
 // Estado da aplicação: forma dos dados, validação, gravação local e partilha por link.
 // Tudo o que vem de fora (localStorage, ficheiro importado, link) passa por normalizeState.
 
+import { t } from './texts.js';
+
 export const STORAGE_KEY = 'quites:v1';
 
 const MAX_PEOPLE = 200;
@@ -72,11 +74,11 @@ export function isEmpty(state) {
 /** Devolve `{ state }` ou `{ error }`. */
 export function addPerson(state, rawName) {
   const name = cleanText(rawName, 60);
-  if (!name) return { error: 'Escreve um nome.' };
+  if (!name) return { error: t('errNeedName') };
   if (state.people.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-    return { error: `Já existe alguém chamado "${name}".` };
+    return { error: t('errDuplicate', name) };
   }
-  if (state.people.length >= MAX_PEOPLE) return { error: 'Chegaste ao limite de pessoas.' };
+  if (state.people.length >= MAX_PEOPLE) return { error: t('errMaxPeople') };
   const person = { id: uid(), name };
   return { state: { ...state, people: [...state.people, person] }, person };
 }
@@ -84,7 +86,7 @@ export function addPerson(state, rawName) {
 /** Quem pagou despesas não pode sair; nas restantes despesas deixa de participar. */
 export function removePerson(state, id) {
   if (state.expenses.some((e) => e.paidBy === id)) {
-    return { error: 'Esta pessoa pagou despesas. Remove ou altera essas despesas primeiro.' };
+    return { error: t('errPayerOfExpenses') };
   }
   const expenses = state.expenses
     .map((e) => ({ ...e, participants: e.participants.filter((p) => p !== id) }))

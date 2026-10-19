@@ -12,7 +12,7 @@ Corre no teu browser: sem conta, sem servidor, sem anúncios. Os dados ficam con
 1. **Pessoas.** Adiciona quem faz parte do grupo.
 2. **Despesas.** Para cada uma, indica o valor, quem pagou e quem participa. O valor divide-se por igual entre os participantes (quem paga pode não participar, por exemplo numa prenda).
 3. **Acerto.** Escolhe como acertar:
-   - **Menos transferências**: cada pessoa paga diretamente a quem lhe deve.
+   - **Menos transferências**: cada pessoa paga diretamente a quem deve.
    - **Tudo por uma só pessoa**: quem deve paga a uma pessoa central, que depois paga a quem tem a receber.
 
    Vais riscando cada transferência à medida que é feita. Para avisar o grupo, podes **copiar as instruções** em texto ou **descarregar uma imagem** (PNG) com o total, cada despesa (quantas pessoas, quanto toca a cada uma) e quem paga a quem.
@@ -49,6 +49,7 @@ web/
   js/summary.js  resumo em texto do grupo (alimenta a imagem)
   js/image.js    desenha o resumo num canvas e gera o PNG
   js/demo.js     grupo fictício de exemplo
+  js/texts.js    todos os textos do site, num só sítio
   js/app.js      interface
 test/            testes de settle.js, state.js e summary.js
 ```

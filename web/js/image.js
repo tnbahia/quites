@@ -1,6 +1,8 @@
 // Desenha o resumo (ver summary.js) num canvas e devolve-o como PNG, para enviar ao grupo.
 // A imagem é sempre clara, independentemente do tema do browser, para ler bem em qualquer chat.
 
+import { t } from './texts.js';
+
 const W = 1080;
 const PAD = 64;
 const MAX_HEIGHT = 16000; // acima disto alguns browsers recusam criar o canvas
@@ -67,7 +69,7 @@ function paint(ctx, s, height) {
     y += 62;
   }
   ctx.font = font(400, 26);
-  ctx.fillText(`${s.subtitle} · feito com Quites`, PAD, y + 28);
+  ctx.fillText(t('imgMadeWith', s.subtitle), PAD, y + 28);
   y = headerH + 40;
 
   // Total
@@ -76,7 +78,7 @@ function paint(ctx, s, height) {
   ctx.fill();
   ctx.fillStyle = COLOR.muted;
   ctx.font = font(400, 26);
-  ctx.fillText('Total das despesas', PAD + 32, y + 50);
+  ctx.fillText(t('imgTotalLabel'), PAD + 32, y + 50);
   ctx.fillStyle = COLOR.accent;
   ctx.font = font(700, 68);
   ctx.fillText(s.totalText, PAD + 32, y + 126);
@@ -95,7 +97,7 @@ function paint(ctx, s, height) {
   };
 
   // Despesas
-  heading('Despesas');
+  heading(t('imgExpenses'));
   s.expenses.forEach((e, i) => {
     ctx.font = font(700, 30);
     const amountW = ctx.measureText(e.amountText).width;
@@ -133,7 +135,7 @@ function paint(ctx, s, height) {
   y += 44;
 
   // Quem paga a quem
-  heading('Quem paga a quem');
+  heading(t('imgWhoPaysWhom'));
   if (s.modeNote) {
     ctx.font = font(400, 24);
     ctx.fillStyle = COLOR.muted;
@@ -146,7 +148,7 @@ function paint(ctx, s, height) {
   if (s.transferGroups.length === 0) {
     ctx.font = font(600, 32);
     ctx.fillStyle = COLOR.accent;
-    ctx.fillText('Já está tudo quite.', PAD, y + 32);
+    ctx.fillText(t('imgAllSquare'), PAD, y + 32);
     y += 48;
   }
   s.transferGroups.forEach((group, g) => {
@@ -158,18 +160,18 @@ function paint(ctx, s, height) {
       ctx.fillStyle = COLOR.muted;
       ctx.font = font(400, 26);
       ctx.textAlign = 'right';
-      ctx.fillText(`total ${group.totalText}`, W - PAD, y + 30);
+      ctx.fillText(t('imgGroupTotal', group.totalText), W - PAD, y + 30);
       ctx.textAlign = 'left';
       y += 30 + 24;
     }
-    for (const t of group.items) y = paintTransfer(ctx, t, y, inner);
+    for (const item of group.items) y = paintTransfer(ctx, item, y, inner);
   });
   y += 28;
 
   // Rodapé
   ctx.font = font(400, 22);
   ctx.fillStyle = COLOR.muted;
-  ctx.fillText('Feito com Quites · tnbahia.github.io/quites', PAD, y + 22);
+  ctx.fillText(t('imgFooter'), PAD, y + 22);
   return y + 22 + 48;
 }
 
@@ -222,6 +224,6 @@ export function renderSummaryCanvas(summary) {
 
 export function canvasToPng(canvas) {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Não foi possível criar a imagem.'))), 'image/png');
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(t('imageFail')))), 'image/png');
   });
 }
