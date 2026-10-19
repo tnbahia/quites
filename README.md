@@ -15,13 +15,13 @@ Corre no teu browser: sem conta, sem servidor, sem anúncios. Os dados ficam con
    - **Menos transferências**: cada pessoa paga diretamente a quem lhe deve.
    - **Tudo por uma só pessoa**: quem deve paga a uma pessoa central, que depois paga a quem tem a receber.
 
-   Vais riscando cada transferência à medida que é feita, e podes copiar as instruções para colar no grupo do WhatsApp.
+   Vais riscando cada transferência à medida que é feita. Para avisar o grupo, podes **copiar as instruções** em texto ou **descarregar uma imagem** (PNG) com o total, cada despesa (quantas pessoas, quanto toca a cada uma) e quem paga a quem.
 
 ## Privacidade
 
 - Não há servidor nem base de dados. Os dados ficam no `localStorage` do teu browser.
-- **Partilhar link** põe o grupo todo no endereço (a parte a seguir ao `#`, que o browser nunca envia a servidores). Quem abrir o link recebe uma **cópia**; as alterações de cada pessoa não se sincronizam.
-- **Exportar / Importar** guarda e repõe o grupo num ficheiro JSON.
+- **Copiar link do grupo** põe o grupo todo no endereço (a parte a seguir ao `#`, que o browser nunca envia a servidores). Quem abrir o link recebe uma **cópia**; as alterações de cada pessoa não se sincronizam.
+- **Mais → Exportar / Importar** guarda e repõe o grupo num ficheiro JSON, como cópia de segurança.
 - A página tem uma Content-Security-Policy que só permite código do próprio site.
 
 ## Limites conhecidos
@@ -46,9 +46,11 @@ web/
   css/style.css
   js/settle.js   cálculo de saldos e transferências (funções puras, valores em cêntimos)
   js/state.js    forma dos dados, validação, localStorage, links de partilha
+  js/summary.js  resumo em texto do grupo (alimenta a imagem)
+  js/image.js    desenha o resumo num canvas e gera o PNG
   js/demo.js     grupo fictício de exemplo
   js/app.js      interface
-test/            testes de settle.js e state.js
+test/            testes de settle.js, state.js e summary.js
 ```
 
 Tudo o que vem de fora (localStorage, ficheiro importado, link) passa por `normalizeState`, e os textos entram na página sempre como texto, nunca como HTML.

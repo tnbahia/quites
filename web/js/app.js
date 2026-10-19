@@ -1,11 +1,11 @@
 // Interface. Os dados de utilizadores (nomes, descrições) só entram no DOM via textContent
 // (através de h()), nunca como HTML, para que um grupo importado ou um link não possam injetar código.
 
-import {
-  computeBalances, minimalTransfers, centralTransfers, pairKey, totalCents, formatMoney, parseMoney,
-} from './settle.js';
+import { settlementPlan, pairKey, totalCents, formatMoney, parseMoney } from './settle.js';
 import * as S from './state.js';
 import { demoState } from './demo.js';
+import { buildSummary } from './summary.js';
+import { renderSummaryCanvas, canvasToPng } from './image.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -166,10 +166,7 @@ function renderSettle() {
     return;
   }
 
-  const balances = computeBalances(state.people, state.expenses);
-  const centralId = state.people.some((p) => p.id === state.central) ? state.central : state.people[0].id;
-  const central = state.mode === 'central';
-  const transfers = central ? centralTransfers(balances, centralId) : minimalTransfers(balances);
+  const { balances, transfers, central, centralId } = settlementPlan(state);
 
   box.append(
     h('fieldset', { class: 'modes' },
@@ -184,7 +181,14 @@ function renderSettle() {
     ),
   );
 
-  box.append(transferList(transfers), balanceTable(balances));
+  box.append(
+    h('div', { class: 'row actions' },
+      transfers.length > 0 && h('button', { type: 'button', onclick: () => copyInstructions(transfers) }, 'Copiar instruções'),
+      h('button', { type: 'button', class: 'primary', onclick: onDownloadImage }, 'Descarregar imagem'),
+    ),
+    transferList(transfers),
+    balanceTable(balances),
+  );
 }
 
 function modeOption(value, title, text) {
@@ -241,10 +245,7 @@ function transferList(transfers) {
   }
 
   wrap.append(
-    h('div', { class: 'row between' },
-      h('h3', {}, transfers.length === 1 ? 'Uma transferência' : `${transfers.length} transferências`),
-      h('button', { type: 'button', class: 'small', onclick: () => copyInstructions(transfers) }, 'Copiar instruções'),
-    ),
+    h('h3', {}, transfers.length === 1 ? 'Uma transferência' : `${transfers.length} transferências`),
     h('ul', { class: 'list checklist' }, rows),
     h('div', { class: 'row progressbar' }, progress, status),
   );
@@ -368,14 +369,28 @@ function slug(text) {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-function onExport() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+function download(blob, filename) {
   const url = URL.createObjectURL(blob);
-  const link = h('a', { href: url, download: `quites-${slug(state.name) || 'grupo'}.json` });
+  const link = h('a', { href: url, download: filename });
   document.body.append(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function onExport() {
+  download(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `quites-${slug(state.name) || 'grupo'}.json`);
+}
+
+async function onDownloadImage() {
+  const canvas = renderSummaryCanvas(buildSummary(state));
+  if (!canvas) return say('Há despesas a mais para caberem numa só imagem. Usa "Exportar" ou "Copiar instruções".', 'warn');
+  try {
+    download(await canvasToPng(canvas), `quites-${slug(state.name) || 'resumo'}.png`);
+    say('Imagem descarregada. Já a podes enviar para o grupo.');
+  } catch (err) {
+    say(err.message, 'error');
+  }
 }
 
 async function onImportFile(ev) {
@@ -431,6 +446,17 @@ $('btn-import').addEventListener('click', () => $('file-import').click());
 $('file-import').addEventListener('change', onImportFile);
 $('btn-demo').addEventListener('click', onDemo);
 $('btn-clear').addEventListener('click', onClear);
+
+// Menu "Mais": fecha ao escolher uma opção, ao clicar fora ou com Escape.
+const menu = $('menu-more');
+menu.addEventListener('click', (ev) => { if (ev.target.closest('.menu-list button')) menu.open = false; });
+document.addEventListener('click', (ev) => { if (!menu.contains(ev.target)) menu.open = false; });
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape' && menu.open) {
+    menu.open = false;
+    menu.querySelector('summary').focus();
+  }
+});
 
 // Colar um link do Quites num separador onde a app já está aberta só muda o `#`, sem recarregar.
 window.addEventListener('hashchange', loadFromHash);

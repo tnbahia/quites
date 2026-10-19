@@ -78,6 +78,15 @@ export function centralTransfers(balances, centralId) {
   return transfers;
 }
 
+/** Saldos e transferências para o modo escolhido no estado (`minimal` ou `central`). */
+export function settlementPlan(state) {
+  const balances = computeBalances(state.people, state.expenses);
+  const central = state.mode === 'central';
+  const centralId = state.people.some((p) => p.id === state.central) ? state.central : (state.people[0]?.id ?? null);
+  const transfers = central ? centralTransfers(balances, centralId) : minimalTransfers(balances);
+  return { balances, transfers, central, centralId };
+}
+
 /**
  * Chave de uma transferência, usada para guardar o "pago?". Inclui o valor: se as despesas
  * mudarem e a pessoa passar a dever outra quantia, a marca de "pago" deixa de se aplicar.

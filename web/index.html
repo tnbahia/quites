@@ -16,14 +16,19 @@
     <div class="wrap">
       <div class="brand">
         <h1>Quites</h1>
-        <p class="tagline">Paga o que deves. Fica tudo quite.</p>
+        <p class="tagline">Paga o que deves. Ficamos quites.</p>
       </div>
       <div class="toolbar" role="toolbar" aria-label="Ações do grupo">
-        <button type="button" id="btn-share" class="primary">Partilhar link</button>
-        <button type="button" id="btn-export">Exportar</button>
-        <button type="button" id="btn-import">Importar</button>
-        <button type="button" id="btn-demo">Ver exemplo</button>
-        <button type="button" id="btn-clear" class="danger">Começar de novo</button>
+        <button type="button" id="btn-share" class="primary">Copiar link do grupo</button>
+        <details class="menu" id="menu-more">
+          <summary>Mais</summary>
+          <div class="menu-list">
+            <button type="button" id="btn-export">Exportar para ficheiro</button>
+            <button type="button" id="btn-import">Importar de ficheiro</button>
+            <button type="button" id="btn-demo">Ver exemplo</button>
+            <button type="button" id="btn-clear" class="danger">Começar de novo</button>
+          </div>
+        </details>
         <input type="file" id="file-import" accept="application/json,.json" hidden>
       </div>
     </div>
