@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tnbahia.github.io/quites/sitemap.xml
