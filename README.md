@@ -23,7 +23,7 @@ Corre no teu browser: sem conta, sem servidor, sem anúncios. Os dados ficam con
 - **Copiar link do grupo** põe o grupo todo no endereço (a parte a seguir ao `#`, que o browser nunca envia a servidores). Quem abrir o link recebe uma **cópia**; as alterações de cada pessoa não se sincronizam.
 - **Mais → Exportar / Importar** guarda e repõe o grupo num ficheiro JSON, como cópia de segurança.
 - A página conta visitas de forma anónima com o [GoatCounter](https://www.goatcounter.com), que guarda dados agregados e não o IP de cada visita. Só envia o endereço da página e de onde vieste; os dados do grupo, incluindo o que vem a seguir ao `#` num link, não são enviados.
-- A página tem uma Content-Security-Policy que só permite código do próprio site e o script do GoatCounter.
+- A página tem uma Content-Security-Policy que só permite código do próprio site (o `web/js/count.js` do GoatCounter é uma cópia local, licença ISC).
 
 ## Limites conhecidos
 
