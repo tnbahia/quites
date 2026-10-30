@@ -1,15 +1,24 @@
 // Cálculo das contas. Sem DOM, sem estado global: só funções puras.
 // Todo o dinheiro é guardado em cêntimos (inteiros) para não acumular erros de vírgula flutuante.
 
-/** Divide `totalCents` por `ids`; os cêntimos que sobram vão para os primeiros da lista. */
-export function splitEvenly(totalCents, ids) {
+/**
+ * Divide `totalCents` por `ids`. Os cêntimos que sobram vão para quem tem acumulado menos
+ * arredondamento a favor (`drift`, opcional, é atualizado); em empate, para os primeiros da lista.
+ * Assim, ao longo de várias despesas, ninguém paga mais de ~1 cêntimo acima dos outros.
+ */
+export function splitEvenly(totalCents, ids, drift = new Map()) {
   const shares = new Map();
   if (ids.length === 0) return shares;
   const base = Math.floor(totalCents / ids.length);
-  let remainder = totalCents - base * ids.length;
+  const remainder = totalCents - base * ids.length;
+  const order = ids
+    .map((id, i) => ({ id, i, d: drift.get(id) ?? 0 }))
+    .sort((a, b) => a.d - b.d || a.i - b.i);
+  const lucky = new Set(order.slice(0, remainder).map((x) => x.id));
   for (const id of ids) {
-    shares.set(id, base + (remainder > 0 ? 1 : 0));
-    if (remainder > 0) remainder--;
+    const cents = base + (lucky.has(id) ? 1 : 0);
+    shares.set(id, cents);
+    drift.set(id, (drift.get(id) ?? 0) + cents - totalCents / ids.length);
   }
   return shares;
 }
@@ -21,12 +30,13 @@ export function splitEvenly(totalCents, ids) {
  */
 export function computeBalances(people, expenses) {
   const rows = new Map(people.map((p) => [p.id, { id: p.id, name: p.name, paidCents: 0, shareCents: 0, balanceCents: 0 }]));
+  const drift = new Map();
   for (const e of expenses) {
     const payer = rows.get(e.paidBy);
     const participants = e.participants.filter((id) => rows.has(id));
     if (!payer || participants.length === 0 || !(e.amountCents > 0)) continue;
     payer.paidCents += e.amountCents;
-    for (const [id, cents] of splitEvenly(e.amountCents, participants)) rows.get(id).shareCents += cents;
+    for (const [id, cents] of splitEvenly(e.amountCents, participants, drift)) rows.get(id).shareCents += cents;
   }
   for (const r of rows.values()) r.balanceCents = r.paidCents - r.shareCents;
   return [...rows.values()];

@@ -27,6 +27,12 @@ test('splitEvenly reparte tudo e dá os cêntimos que sobram aos primeiros', () 
   assert.equal(splitEvenly(5, []).size, 0);
 });
 
+test('os cêntimos que sobram rodam: quem entra em todas as despesas paga o mesmo, ±1 cêntimo', () => {
+  const full = computeBalances(people, expenses).filter((b) => expenses.every((e) => e.participants.includes(b.id)));
+  const shares = full.map((b) => b.shareCents);
+  assert.ok(Math.max(...shares) - Math.min(...shares) <= 1, shares.join());
+});
+
 test('a soma dos saldos é sempre zero', () => {
   const balances = computeBalances(people, expenses);
   assert.equal(balances.reduce((s, b) => s + b.balanceCents, 0), 0);
